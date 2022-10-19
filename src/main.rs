@@ -92,4 +92,75 @@ fn main() {
 
         println!("Number: {} is prime: {}", n, colored_prime);
     }
+
+    println!("Thread number: 1");
+    println!("Thread amount: 2");
+    println!("Highest number: 100");
+    println!("Upper bound: {}", boundaries(2, 2, 100).0);
+    println!("Lower bound: {}", boundaries(2, 2, 100).1);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn correct_boundaries_for_first_thread_and_even_number() {
+        let (lower, upper) = boundaries(1, 2, 100);
+
+        assert_eq!(lower, 1);
+        assert_eq!(upper, 50);
+    }
+
+    #[test]
+    fn correct_boundaries_for_second_thread_and_even_number() {
+        let (lower, upper) = boundaries(2, 2, 100);
+
+        assert_eq!(lower, 51);
+        assert_eq!(upper, 100);
+    }
+
+    #[test]
+    fn correct_boundaries_for_first_thread_and_odd_number() {
+        let (lower, upper) = boundaries(1, 2, 101);
+
+        assert_eq!(lower, 1);
+        assert_eq!(upper, 50);
+    }
+
+    #[test]
+    fn correct_boundaries_for_second_thread_and_odd_number() {
+        let (lower, upper) = boundaries(2, 2, 101);
+
+        assert_eq!(lower, 51);
+        assert_eq!(upper, 101);
+    }
+
+    #[test]
+    fn correct_boundaries_for_third_thread_and_odd_number() {
+        let (lower, upper) = boundaries(3, 4, 101);
+
+        assert_eq!(lower, 51);
+        assert_eq!(upper, 75);
+    }
+
+    #[test]
+    fn correct_boundaries_for_third_thread_and_even_number() {
+        let (lower, upper) = boundaries(3, 3, 100);
+
+        assert_eq!(lower, 67);
+        assert_eq!(upper, 100);
+    }
+
+    #[test]
+    #[should_panic]
+    fn thread_num_is_gt_thread_amount_in_boundaries() {
+        boundaries(3, 2, 101);
+    }
+
+    #[test]
+    #[should_panic]
+    fn thread_amount_is_gt_highest_number_in_boundaries() {
+        boundaries(2, 2, 1);
+    }
 }
