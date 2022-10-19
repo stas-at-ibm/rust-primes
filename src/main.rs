@@ -70,6 +70,22 @@ fn is_prime(n: u64) -> bool {
 // if threads_amount == thread_num { upper_bound = highest_number }
 // else upper_bound = step * thread_num      // => 100
 fn boundaries(thread_num: u64, threads_amount: u64, highest_number: u64) -> (u64, u64) {
+    if thread_num > threads_amount {
+        panic!(
+            "Thread number must be smaller than thread amount.\nThread number: {}\nThread amount: {}",
+            thread_num,
+            threads_amount
+        );
+    }
+
+    if threads_amount > highest_number {
+        panic!(
+            "Total number of threads must be smaller than highest number.\nThreads amount: {}\nHighest number: {}.",
+            threads_amount,
+            highest_number
+        );
+    }
+
     let step: u64 = (highest_number / threads_amount) as u64;
     let lower_bound: u64 = step * (thread_num - 1) + 1;
 
