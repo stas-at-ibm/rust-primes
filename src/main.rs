@@ -154,6 +154,7 @@ fn runner(threads_amount: u64, search_range: (u64, u64)) -> Vec<(u64, bool)> {
     let rx: Receiver<(u64, bool)> = {
         let (tx, rx) = mpsc::channel::<(u64, bool)>();
 
+        // todo: break down loop
         for thread_number in 1..=threads_amount {
             let tx_clone: Sender<(u64, bool)> = tx.clone();
             let section: (u64, u64) = range_boundaries(thread_number, threads_amount, search_range);
@@ -173,22 +174,26 @@ fn runner(threads_amount: u64, search_range: (u64, u64)) -> Vec<(u64, bool)> {
     rx.iter().collect()
 }
 
-fn main() {
-    let threads_amount: u64 = 17;
-    let search_range: (u64, u64) = (1_000_000_100_000_u64, 1_000_000_100_200_u64);
-    let rx: Vec<(u64, bool)> = runner(threads_amount, search_range);
-
-    for received in rx {
+fn print_in_color(checked_numbers: Vec<(u64, bool)>) {
+    for num in checked_numbers {
         let colored_prime: ColoredString;
-        let it_is_prime: bool = received.1;
+        let it_is_prime: bool = num.1;
         if it_is_prime {
             colored_prime = it_is_prime.to_string().green();
         } else {
             colored_prime = it_is_prime.to_string().red();
         }
 
-        println!("Number: {} is prime: {}", received.0, colored_prime);
+        println!("Number: {} is prime: {}", num.0, colored_prime);
     }
+}
+
+fn main() {
+    let threads_amount: u64 = 17;
+    let search_range: (u64, u64) = (1_000_000_100_000_u64, 1_000_000_100_200_u64);
+
+    let checked_numbers: Vec<(u64, bool)> = runner(threads_amount, search_range);
+    print_in_color(checked_numbers);
 }
 
 #[cfg(test)]
