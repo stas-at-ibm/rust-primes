@@ -5,11 +5,10 @@
 // * - [x] define boundaries for each thread
 // *    - [] refactor: return result instead of panic
 // *    - [] refactor: extract into modules
-// * - [] create threads
-// *    - [] checks if a number is prime
-// *    - [] document result
-// *    - [] move to next number
-// *    - [] publish result
+// * - [x] create threads
+// *    - [x] checks if a number is prime
+// *    - [x] move to next number
+// *    - [x] publish result
 // * - [] extract into modules
 // * - [x] implement unit tests for the boundaries
 // * - [] [later] implement unit tests for prime checker - after extraction
@@ -149,9 +148,7 @@ fn worker(lower: u64, upper: u64, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
     })
 }
 
-fn main() {
-    let threads_amount: u64 = 2;
-    let search_range: (u64, u64) = (1_000_000_000_u64, 1_000_000_010_u64);
+fn runner(threads_amount: u64, search_range: (u64, u64)) -> Vec<(u64, bool)> {
     let mut handles: Vec<JoinHandle<()>> = vec![];
 
     let rx: Receiver<(u64, bool)> = {
@@ -160,13 +157,26 @@ fn main() {
         for thread_number in 1..=threads_amount {
             let tx_clone: Sender<(u64, bool)> = tx.clone();
             let section: (u64, u64) = range_boundaries(thread_number, threads_amount, search_range);
+            println!("Thread {}, Section: {:?}", thread_number, section);
+
             let handle: JoinHandle<()> = worker(section.0, section.1, tx_clone);
             handles.push(handle);
-            println!("Thread {}, Section: {:?}", thread_number, section);
         }
 
         rx
     };
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    rx.iter().collect()
+}
+
+fn main() {
+    let threads_amount: u64 = 17;
+    let search_range: (u64, u64) = (1_000_000_100_000_u64, 1_000_000_100_200_u64);
+    let rx: Vec<(u64, bool)> = runner(threads_amount, search_range);
 
     for received in rx {
         let colored_prime: ColoredString;
@@ -178,10 +188,6 @@ fn main() {
         }
 
         println!("Number: {} is prime: {}", received.0, colored_prime);
-    }
-
-    for handle in handles {
-        handle.join().unwrap();
     }
 }
 
