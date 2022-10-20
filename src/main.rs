@@ -19,7 +19,7 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-use colored::{ColoredString, Colorize};
+use colored::Colorize;
 
 fn is_prime(n: u64) -> bool {
     if (n == 1)
@@ -152,7 +152,7 @@ fn runner(threads_amount: u64, search_range: (u64, u64)) -> Vec<(u64, bool)> {
     let mut handles: Vec<JoinHandle<()>> = vec![];
 
     let rx: Receiver<(u64, bool)> = {
-        let (tx, rx) = mpsc::channel::<(u64, bool)>();
+        let (tx, rx): (Sender<(u64, bool)>, Receiver<(u64, bool)>) = mpsc::channel();
 
         // todo: break down loop
         for thread_number in 1..=threads_amount {
@@ -174,12 +174,12 @@ fn runner(threads_amount: u64, search_range: (u64, u64)) -> Vec<(u64, bool)> {
     rx.iter().collect()
 }
 
-fn print_in_color(checked_numbers: Vec<(u64, bool)>) {
+fn print_prime_in_color(checked_numbers: Vec<(u64, bool)>) {
     for num in checked_numbers {
         if num.1 {
-            println!("Number: {} is prime: {}", num.0, num.1.to_string().green());
+            println!("{} is prime.", num.0.to_string().green());
         } else {
-            println!("Number: {} is prime: {}", num.0, num.1.to_string().red());
+            println!("{} is {} prime.", num.0, "not".red());
         }
     }
 }
@@ -189,7 +189,7 @@ fn main() {
     let search_range: (u64, u64) = (1_000_000_100_000_u64, 1_000_000_100_200_u64);
 
     let checked_numbers: Vec<(u64, bool)> = runner(threads_amount, search_range);
-    print_in_color(checked_numbers);
+    print_prime_in_color(checked_numbers);
 }
 
 #[cfg(test)]
