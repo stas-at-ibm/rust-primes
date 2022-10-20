@@ -1,14 +1,19 @@
 // * Find primes starting from 100.000.000 with multi threads
 // * - [x] check if number is prime
-// *    - [] refactor
-// * - [] define boundaries for each thread
+// *    - [] refactor: use arrays
+// *    - [] refactor: extract into module
+// * - [x] define boundaries for each thread
+// *    - [] refactor: return result instead of panic
+// *    - [] refactor: extract into modules
 // * - [] create threads
 // *    - [] checks if a number is prime
 // *    - [] document result
 // *    - [] move to next number
 // *    - [] publish result
 // * - [] extract into modules
-// * - [] implement unit tests
+// * - [x] implement unit tests for the boundaries
+// * - [] [later] implement unit tests for prime checker - after extraction
+// * - [] check out and use concepts from https://doc.rust-lang.org/book/ch12-00-an-io-project.html
 
 use colored::Colorize;
 
