@@ -15,7 +15,12 @@
 // * - [] [later] implement unit tests for prime checker - after extraction
 // * - [] check out and use concepts from https://doc.rust-lang.org/book/ch12-00-an-io-project.html
 
-use colored::Colorize;
+use std::{
+    sync::mpsc::{self, Receiver, Sender},
+    thread::{self, JoinHandle},
+};
+
+use colored::{ColoredString, Colorize};
 
 fn is_prime(n: u64) -> bool {
     if (n == 1)
@@ -145,23 +150,39 @@ fn worker(lower: u64, upper: u64, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
 }
 
 fn main() {
-    for n in 1..50 {
-        let colored_prime;
-        let it_is_prime = is_prime(n);
+    let threads_amount: u64 = 2;
+    let search_range: (u64, u64) = (1_000_000_000_u64, 1_000_000_010_u64);
+    let mut handles: Vec<JoinHandle<()>> = vec![];
+
+    let rx: Receiver<(u64, bool)> = {
+        let (tx, rx) = mpsc::channel::<(u64, bool)>();
+
+        for thread_number in 1..=threads_amount {
+            let tx_clone: Sender<(u64, bool)> = tx.clone();
+            let section: (u64, u64) = range_boundaries(thread_number, threads_amount, search_range);
+            let handle: JoinHandle<()> = worker(section.0, section.1, tx_clone);
+            handles.push(handle);
+            println!("Thread {}, Section: {:?}", thread_number, section);
+        }
+
+        rx
+    };
+
+    for received in rx {
+        let colored_prime: ColoredString;
+        let it_is_prime: bool = received.1;
         if it_is_prime {
             colored_prime = it_is_prime.to_string().green();
         } else {
             colored_prime = it_is_prime.to_string().red();
         }
 
-        println!("Number: {} is prime: {}", n, colored_prime);
+        println!("Number: {} is prime: {}", received.0, colored_prime);
     }
 
-    println!("Thread number: 1");
-    println!("Thread amount: 2");
-    println!("Highest number: 100");
-    println!("Upper bound: {}", boundaries(2, 2, 100).0);
-    println!("Lower bound: {}", boundaries(2, 2, 100).1);
+    for handle in handles {
+        handle.join().unwrap();
+    }
 }
 
 #[cfg(test)]
