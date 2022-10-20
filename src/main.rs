@@ -176,15 +176,11 @@ fn runner(threads_amount: u64, search_range: (u64, u64)) -> Vec<(u64, bool)> {
 
 fn print_in_color(checked_numbers: Vec<(u64, bool)>) {
     for num in checked_numbers {
-        let colored_prime: ColoredString;
-        let it_is_prime: bool = num.1;
-        if it_is_prime {
-            colored_prime = it_is_prime.to_string().green();
+        if num.1 {
+            println!("Number: {} is prime: {}", num.0, num.1.to_string().green());
         } else {
-            colored_prime = it_is_prime.to_string().red();
+            println!("Number: {} is prime: {}", num.0, num.1.to_string().red());
         }
-
-        println!("Number: {} is prime: {}", num.0, colored_prime);
     }
 }
 
