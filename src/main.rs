@@ -96,6 +96,49 @@ fn boundaries(thread_num: u64, threads_amount: u64, highest_number: u64) -> (u64
     }
 }
 
+fn range_boundaries(thread_num: u64, threads_amount: u64, search_range: (u64, u64)) -> (u64, u64) {
+    let start = search_range.0;
+    let end = search_range.1;
+    let highest_number = end - start;
+
+    if thread_num > threads_amount {
+        panic!(
+            "Thread number must be smaller than thread amount.\nThread number: {}\nThread amount: {}",
+            thread_num,
+            threads_amount
+        );
+    }
+
+    if threads_amount > highest_number {
+        panic!(
+            "Total number of threads must be smaller than highest number.\nThreads amount: {}\nHighest number: {}.",
+            threads_amount,
+            highest_number
+        );
+    }
+
+    let step: u64 = (highest_number / threads_amount) as u64;
+    let lower_bound: u64 = step * (thread_num - 1) + 1;
+
+    if threads_amount == thread_num {
+        (start + lower_bound, start + highest_number)
+    } else {
+        (start + lower_bound, start + (step * thread_num))
+    }
+}
+
+fn worker(lower: u64, upper: u64, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
+    thread::spawn(move || {
+        for num in lower..upper {
+            if is_prime(num) {
+                tx.send((num, true)).unwrap();
+            } else {
+                tx.send((num, false)).unwrap();
+            }
+        }
+    })
+}
+
 fn main() {
     for n in 1..50 {
         let colored_prime;
