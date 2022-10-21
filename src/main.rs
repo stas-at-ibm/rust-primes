@@ -3,7 +3,7 @@
 // *    - [] refactor: use arrays
 // *    - [] refactor: extract into module
 // * - [x] define boundaries for each thread
-// *    - [] THEN_CONTINUE_HERE refactor: return result instead of panic
+// *    - [x] refactor: return result instead of panic
 // *    - [] refactor: extract into modules
 // * - [x] create threads
 // *    - [x] checks if a number is prime

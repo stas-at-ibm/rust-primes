@@ -4,6 +4,10 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+use self::errors::{ParallelismError, ParallelismErrorKind};
+
+mod errors;
+
 pub fn print_prime_in_color(checked_numbers: Vec<(u64, bool)>) {
     for num in checked_numbers {
         if num.1 {
@@ -111,4 +115,35 @@ pub fn is_prime(n: u64) -> bool {
     let upper_boundary = (n as f32).sqrt() as u64;
 
     (19..=upper_boundary).step_by(2).all(|num| n % num != 0)
+}
+
+fn range_boundaries_v2(
+    thread_num: u64,
+    threads_amount: u64,
+    search_range: (u64, u64),
+) -> Result<(u64, u64), ParallelismError> {
+    let start = search_range.0;
+    let end = search_range.1;
+    let highest_number = end - start;
+
+    if thread_num > threads_amount {
+        return Err(ParallelismError::new(
+            ParallelismErrorKind::ThreadNumberError,
+        ));
+    }
+
+    if threads_amount > highest_number {
+        return Err(ParallelismError::new(
+            ParallelismErrorKind::ThreadAmountError,
+        ));
+    }
+
+    let step: u64 = (highest_number / threads_amount) as u64;
+    let lower_bound: u64 = step * (thread_num - 1) + 1;
+
+    if threads_amount == thread_num {
+        Ok((start + lower_bound, start + highest_number))
+    } else {
+        Ok((start + lower_bound, start + (step * thread_num)))
+    }
 }
