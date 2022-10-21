@@ -1,26 +1,3 @@
-// * Find primes starting from 100.000.000 with multi threads
-// * - [x] check if number is prime
-// *    - [] refactor: use arrays
-// *    - [] refactor: extract into module
-// * - [x] define boundaries for each thread
-// *    - [x] refactor: return result instead of panic
-// *    - [] refactor: extract into modules
-// * - [x] create threads
-// *    - [x] checks if a number is prime
-// *    - [x] move to next number
-// *    - [x] publish result
-// * - [x] extract into modules
-// * - [ ] use lib and bin modules, put primes and errors into lib
-// * - [x] implement unit tests for the boundaries
-// * - [] [later] implement unit tests for prime checker - after extraction
-// * - [] check out and use concepts from https://doc.rust-lang.org/book/ch12-00-an-io-project.html
-// * - [] range_boundaries: bug if search range starts with 1
-// * - [] range_boundaries: unit test
-// * - [] CONTINUE_HERE: switch to runner_v2 with result in main
-// * - [] THEN runner: break down loop
-// * - [] THEN extract primes into lib module (best practice)
-// * - [x] [useless] thread: pass in function, own module, tx optional, generics for tx
-
 mod primes;
 use primes::{print_prime_in_color, runner};
 
