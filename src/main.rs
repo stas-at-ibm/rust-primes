@@ -16,7 +16,9 @@
 // * - [] check out and use concepts from https://doc.rust-lang.org/book/ch12-00-an-io-project.html
 // * - [] range_boundaries: bug if search range starts with 1
 // * - [] range_boundaries: unit test
-// * - [] runner: break down loop
+// * - [] CONTINUE_HERE: switch to runner_v2 with result in main
+// * - [] THEN runner: break down loop
+// * - [] THEN extract primes into lib module (best practice)
 // * - [x] [useless] thread: pass in function, own module, tx optional, generics for tx
 
 mod primes;
