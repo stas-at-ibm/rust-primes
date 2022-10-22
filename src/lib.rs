@@ -29,22 +29,16 @@ fn worker(lower: u64, upper: u64, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
 }
 
 pub fn is_prime(n: u64) -> bool {
-    let one_and_nine_primes = [1, 2, 3, 5, 7, 11, 13, 17, 19];
+    if n == 1 {
+        return false;
+    }
 
-    if one_and_nine_primes.iter().any(|prime| *prime == n) {
+    let first_eight_primes = [2, 3, 5, 7, 11, 13, 17, 19];
+    if first_eight_primes.iter().any(|prime| *prime == n) {
         return true;
     }
 
-    // let first_nine_primes_slice = first_nine_primes[1..];
-    if (n % 2 == 0)
-        || (n % 3 == 0)
-        || (n % 5 == 0)
-        || (n % 7 == 0)
-        || (n % 11 == 0)
-        || (n % 13 == 0)
-        || (n % 17 == 0)
-        || (n % 19 == 0)
-    {
+    if first_eight_primes.iter().any(|prime| n % *prime == 0) {
         return false;
     }
 
@@ -58,8 +52,18 @@ mod tests {
     use super::is_prime;
 
     #[test]
-    fn lib_true_for_first_nine_primes() {
-        let one_and_nine_primes = [1, 2, 3, 5, 7, 11, 13, 17, 19];
+    fn lib_zero_is_not_prime() {
+        assert_eq!(is_prime(0), false);
+    }
+
+    #[test]
+    fn lib_one_is_not_prime() {
+        assert_eq!(is_prime(1), false);
+    }
+
+    #[test]
+    fn lib_true_for_first_eight_primes() {
+        let one_and_nine_primes = [2, 3, 5, 7, 11, 13, 17, 19];
 
         for prime in one_and_nine_primes {
             assert_eq!(is_prime(prime), true);
@@ -67,7 +71,16 @@ mod tests {
     }
 
     #[test]
-    fn lib_true_for_multiples_of_eight_primes() {
+    fn lib_true_for_five_more_primes() {
+        let five_more_primes = [23, 29, 31, 37, 41];
+
+        for prime in five_more_primes {
+            assert_eq!(is_prime(prime), true);
+        }
+    }
+
+    #[test]
+    fn lib_false_for_multiples_of_eight_primes() {
         let first_eight_primes = [2, 3, 5, 7, 11, 13, 17, 19];
 
         for prime in first_eight_primes {
