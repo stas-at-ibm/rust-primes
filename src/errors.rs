@@ -17,6 +17,7 @@ impl ParallelismError {
 
 #[derive(Debug)]
 pub enum ParallelismErrorKind {
+    ZeroThreadsError,
     ThreadNumberError,
     ThreadAmountError,
 }
@@ -24,6 +25,10 @@ pub enum ParallelismErrorKind {
 impl fmt::Display for ParallelismError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.kind {
+            // "Thread number must be smaller than thread amount.\nThread number: {}\nThread amount: {}",
+            ParallelismErrorKind::ZeroThreadsError => {
+                write!(f, "there must be at least one thread")
+            }
             // "Thread number must be smaller than thread amount.\nThread number: {}\nThread amount: {}",
             ParallelismErrorKind::ThreadNumberError => {
                 write!(f, "thread number must be smaller than thread amount")
