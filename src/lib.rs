@@ -29,7 +29,11 @@ pub fn find_primes_parallel(
     let (rx, handles) = start_threads(threads_amount, search_range);
 
     for handle in handles {
-        handle.join().unwrap();
+        if let Err(_) = handle.join() {
+            return Err(ParallelismError::new(
+                ParallelismErrorKind::ThreadPanicError,
+            ));
+        }
     }
 
     match rx {
