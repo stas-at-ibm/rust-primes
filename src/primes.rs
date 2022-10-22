@@ -61,27 +61,11 @@ pub fn is_prime(n: u64) -> bool {
     (19..=upper_boundary).step_by(2).all(|num| n % num != 0)
 }
 
-pub fn runner(
+pub fn find_primes_parallel(
     threads_amount: u64,
     search_range: (u64, u64),
 ) -> Result<Vec<(u64, bool)>, ParallelismError> {
-    let mut handles: Vec<JoinHandle<()>> = vec![];
-
-    let rx: Result<Receiver<(u64, bool)>, ParallelismError> = {
-        let (tx, rx): (Sender<(u64, bool)>, Receiver<(u64, bool)>) = mpsc::channel();
-
-        for thread_number in 1..=threads_amount {
-            let tx_clone: Sender<(u64, bool)> = tx.clone();
-            let section: (u64, u64) =
-                range_boundaries(thread_number, threads_amount, search_range)?;
-
-            println!("Thread {}, Section: {:?}", thread_number, section);
-            let handle: JoinHandle<()> = worker(section.0, section.1, tx_clone);
-            handles.push(handle);
-        }
-
-        Ok(rx)
-    };
+    let (rx, handles) = start_threads(threads_amount, search_range);
 
     for handle in handles {
         handle.join().unwrap();
@@ -91,6 +75,37 @@ pub fn runner(
         Ok(rx) => Ok(rx.iter().collect()),
         Err(e) => Err(e),
     }
+}
+
+fn start_threads(
+    threads_amount: u64,
+    search_range: (u64, u64),
+) -> (
+    Result<Receiver<(u64, bool)>, ParallelismError>,
+    Vec<JoinHandle<()>>,
+) {
+    let handles: Vec<JoinHandle<()>>;
+
+    // hack: encapsulated into "{}" so that the receiver closes when the threads finish
+    let rx: Result<Receiver<(u64, bool)>, ParallelismError> = {
+        let (tx, rx): (Sender<(u64, bool)>, Receiver<(u64, bool)>) = mpsc::channel();
+
+        handles = (1..=threads_amount)
+            .map(|_| tx.clone())
+            .enumerate()
+            .map(|(thread_number, tx)| {
+                (
+                    range_boundaries(thread_number as u64, threads_amount, search_range).unwrap(),
+                    tx,
+                )
+            })
+            .map(|range_and_tx| worker(range_and_tx.0 .0, range_and_tx.0 .1, range_and_tx.1))
+            .collect();
+
+        Ok(rx)
+    };
+
+    (rx, handles)
 }
 
 fn range_boundaries(
