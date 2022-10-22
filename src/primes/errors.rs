@@ -31,7 +31,7 @@ impl fmt::Display for ParallelismError {
             // "Total number of threads must be smaller than highest number.\nThreads amount: {}\nHighest number: {}.",
             ParallelismErrorKind::ThreadAmountError => write!(
                 f,
-                "Total number of threads must be smaller than highest number"
+                "total number of threads must be smaller than highest number"
             ),
         }
     }

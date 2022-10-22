@@ -1,5 +1,6 @@
+use colored::Colorize;
 mod primes;
-use primes::{print_prime_in_color, runner};
+use primes::{print_prime_in_color, runner_v2};
 
 // highest_number: 100
 // threads_amount: 2
@@ -57,9 +58,12 @@ fn boundaries(thread_num: u64, threads_amount: u64, highest_number: u64) -> (u64
 fn main() {
     let threads_amount: u64 = 17;
     let search_range: (u64, u64) = (1_000_000_100_000_u64, 1_000_000_100_200_u64);
+    // let search_range: (u64, u64) = (1_u64, 16_u64);
 
-    let checked_numbers: Vec<(u64, bool)> = runner(threads_amount, search_range);
-    print_prime_in_color(checked_numbers);
+    match runner_v2(threads_amount, search_range) {
+        Ok(primes) => print_prime_in_color(primes),
+        Err(e) => eprintln!("{}: {} ", "error".red(), e),
+    };
 }
 
 #[cfg(test)]
