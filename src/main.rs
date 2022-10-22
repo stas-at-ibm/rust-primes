@@ -1,6 +1,6 @@
 use colored::Colorize;
 mod primes;
-use primes::{print_prime_in_color, runner_v2};
+use primes::{print_prime_in_color, runner};
 
 // highest_number: 100
 // threads_amount: 2
@@ -60,7 +60,7 @@ fn main() {
     let search_range: (u64, u64) = (1_000_000_100_000_u64, 1_000_000_100_200_u64);
     // let search_range: (u64, u64) = (1_u64, 16_u64);
 
-    match runner_v2(threads_amount, search_range) {
+    match runner(threads_amount, search_range) {
         Ok(primes) => print_prime_in_color(primes),
         Err(e) => eprintln!("{}: {} ", "error".red(), e),
     };
