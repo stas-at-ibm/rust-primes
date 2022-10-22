@@ -29,19 +29,13 @@ fn worker(lower: u64, upper: u64, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
 }
 
 pub fn is_prime(n: u64) -> bool {
-    if (n == 1)
-        || (n == 2)
-        || (n == 3)
-        || (n == 5)
-        || (n == 7)
-        || (n == 11)
-        || (n == 13)
-        || (n == 17)
-        || (n == 19)
-    {
+    let one_and_nine_primes = [1, 2, 3, 5, 7, 11, 13, 17, 19];
+
+    if one_and_nine_primes.iter().any(|prime| *prime == n) {
         return true;
     }
 
+    // let first_nine_primes_slice = first_nine_primes[1..];
     if (n % 2 == 0)
         || (n % 3 == 0)
         || (n % 5 == 0)
@@ -57,6 +51,29 @@ pub fn is_prime(n: u64) -> bool {
     let upper_boundary = (n as f32).sqrt() as u64;
 
     (19..=upper_boundary).step_by(2).all(|num| n % num != 0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_prime;
+
+    #[test]
+    fn lib_true_for_first_nine_primes() {
+        let one_and_nine_primes = [1, 2, 3, 5, 7, 11, 13, 17, 19];
+
+        for prime in one_and_nine_primes {
+            assert_eq!(is_prime(prime), true);
+        }
+    }
+
+    #[test]
+    fn lib_true_for_multiples_of_eight_primes() {
+        let first_eight_primes = [2, 3, 5, 7, 11, 13, 17, 19];
+
+        for prime in first_eight_primes {
+            assert_eq!(is_prime(prime * prime), false);
+        }
+    }
 }
 
 pub fn find_primes_parallel(
