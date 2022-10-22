@@ -20,6 +20,12 @@ pub fn find_primes_parallel(
     threads_amount: u64,
     search_range: (u64, u64),
 ) -> Result<Vec<(u64, bool)>, ParallelismError> {
+    if threads_amount == 0 {
+        return Err(ParallelismError::new(
+            ParallelismErrorKind::ZeroThreadsError,
+        ));
+    }
+
     let (rx, handles) = start_threads(threads_amount, search_range);
 
     for handle in handles {
@@ -65,7 +71,7 @@ fn start_threads(
 }
 
 fn range_boundaries(
-    thread_num: u64,
+    thread_number: u64,
     threads_amount: u64,
     search_range: (u64, u64),
 ) -> Result<(u64, u64), ParallelismError> {
@@ -73,7 +79,7 @@ fn range_boundaries(
     let end = search_range.1;
     let highest_number = end - start;
 
-    if thread_num > threads_amount {
+    if thread_number > threads_amount {
         return Err(ParallelismError::new(
             ParallelismErrorKind::ThreadNumberError,
         ));
@@ -86,12 +92,12 @@ fn range_boundaries(
     }
 
     let step: u64 = (highest_number / threads_amount) as u64;
-    let lower_bound: u64 = step * (thread_num - 1) + 1;
+    let lower_bound: u64 = step * (thread_number - 1) + 1;
 
-    if threads_amount == thread_num {
+    if threads_amount == thread_number {
         Ok((start + lower_bound, start + highest_number))
     } else {
-        Ok((start + lower_bound, start + (step * thread_num)))
+        Ok((start + lower_bound, start + (step * thread_number)))
     }
 }
 
