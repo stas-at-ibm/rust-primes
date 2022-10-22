@@ -6,85 +6,12 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-pub fn print_prime_in_color(checked_numbers: Vec<(u64, bool)>) {
-    for num in checked_numbers {
+pub fn print_prime_in_color(list_with_primes: Vec<(u64, bool)>) {
+    for num in list_with_primes {
         if num.1 {
             println!("{} is prime.", num.0.to_string().green());
         } else {
             println!("{} is {} prime.", num.0, "not".red());
-        }
-    }
-}
-
-fn worker(lower: u64, upper: u64, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
-    thread::spawn(move || {
-        for num in lower..upper {
-            if is_prime(num) {
-                tx.send((num, true)).unwrap();
-            } else {
-                tx.send((num, false)).unwrap();
-            }
-        }
-    })
-}
-
-pub fn is_prime(n: u64) -> bool {
-    if n == 1 {
-        return false;
-    }
-
-    let first_eight_primes = [2, 3, 5, 7, 11, 13, 17, 19];
-    if first_eight_primes.iter().any(|prime| *prime == n) {
-        return true;
-    }
-
-    if first_eight_primes.iter().any(|prime| n % *prime == 0) {
-        return false;
-    }
-
-    let upper_boundary = (n as f32).sqrt() as u64;
-
-    (19..=upper_boundary).step_by(2).all(|num| n % num != 0)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::is_prime;
-
-    #[test]
-    fn lib_zero_is_not_prime() {
-        assert_eq!(is_prime(0), false);
-    }
-
-    #[test]
-    fn lib_one_is_not_prime() {
-        assert_eq!(is_prime(1), false);
-    }
-
-    #[test]
-    fn lib_true_for_first_eight_primes() {
-        let one_and_nine_primes = [2, 3, 5, 7, 11, 13, 17, 19];
-
-        for prime in one_and_nine_primes {
-            assert_eq!(is_prime(prime), true);
-        }
-    }
-
-    #[test]
-    fn lib_true_for_five_more_primes() {
-        let five_more_primes = [23, 29, 31, 37, 41];
-
-        for prime in five_more_primes {
-            assert_eq!(is_prime(prime), true);
-        }
-    }
-
-    #[test]
-    fn lib_false_for_multiples_of_eight_primes() {
-        let first_eight_primes = [2, 3, 5, 7, 11, 13, 17, 19];
-
-        for prime in first_eight_primes {
-            assert_eq!(is_prime(prime * prime), false);
         }
     }
 }
@@ -165,5 +92,78 @@ fn range_boundaries(
         Ok((start + lower_bound, start + highest_number))
     } else {
         Ok((start + lower_bound, start + (step * thread_num)))
+    }
+}
+
+fn worker(lower: u64, upper: u64, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
+    thread::spawn(move || {
+        for num in lower..upper {
+            if is_prime(num) {
+                tx.send((num, true)).unwrap();
+            } else {
+                tx.send((num, false)).unwrap();
+            }
+        }
+    })
+}
+
+pub fn is_prime(n: u64) -> bool {
+    if n == 1 {
+        return false;
+    }
+
+    let first_eight_primes = [2, 3, 5, 7, 11, 13, 17, 19];
+    if first_eight_primes.iter().any(|prime| *prime == n) {
+        return true;
+    }
+
+    if first_eight_primes.iter().any(|prime| n % *prime == 0) {
+        return false;
+    }
+
+    let upper_boundary = (n as f32).sqrt() as u64;
+
+    (19..=upper_boundary).step_by(2).all(|num| n % num != 0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_prime;
+
+    #[test]
+    fn lib_zero_is_not_prime() {
+        assert_eq!(is_prime(0), false);
+    }
+
+    #[test]
+    fn lib_one_is_not_prime() {
+        assert_eq!(is_prime(1), false);
+    }
+
+    #[test]
+    fn lib_true_for_first_eight_primes() {
+        let one_and_nine_primes = [2, 3, 5, 7, 11, 13, 17, 19];
+
+        for prime in one_and_nine_primes {
+            assert_eq!(is_prime(prime), true);
+        }
+    }
+
+    #[test]
+    fn lib_true_for_five_more_primes() {
+        let five_more_primes = [23, 29, 31, 37, 41];
+
+        for prime in five_more_primes {
+            assert_eq!(is_prime(prime), true);
+        }
+    }
+
+    #[test]
+    fn lib_false_for_multiples_of_eight_primes() {
+        let first_eight_primes = [2, 3, 5, 7, 11, 13, 17, 19];
+
+        for prime in first_eight_primes {
+            assert_eq!(is_prime(prime * prime), false);
+        }
     }
 }
