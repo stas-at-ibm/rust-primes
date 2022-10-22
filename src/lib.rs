@@ -1,12 +1,10 @@
+mod errors;
 use colored::Colorize;
+use errors::{ParallelismError, ParallelismErrorKind};
 use std::{
     sync::mpsc::{self, Receiver, Sender},
     thread::{self, JoinHandle},
 };
-
-use self::errors::{ParallelismError, ParallelismErrorKind};
-
-mod errors;
 
 pub fn print_prime_in_color(checked_numbers: Vec<(u64, bool)>) {
     for num in checked_numbers {
@@ -95,7 +93,8 @@ fn start_threads(
             .enumerate()
             .map(|(thread_number, tx)| {
                 (
-                    range_boundaries(thread_number as u64, threads_amount, search_range).unwrap(),
+                    range_boundaries(thread_number as u64 + 1, threads_amount, search_range)
+                        .unwrap(),
                     tx,
                 )
             })

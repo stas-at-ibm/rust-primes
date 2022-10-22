@@ -1,7 +1,5 @@
 use colored::Colorize;
-mod primes;
-use primes::{find_primes_parallel, print_prime_in_color};
-
+use rust_primes::{find_primes_parallel, print_prime_in_color};
 // highest_number: 100
 // threads_amount: 2
 // thread_num: 1
@@ -56,6 +54,12 @@ fn boundaries(thread_num: u64, threads_amount: u64, highest_number: u64) -> (u64
 }
 
 fn main() {
+    // Main will do only
+    // * Calling the primes search logic with the argument values
+    // * Setting up any other configuration
+    // * Calling a run function in lib.rs
+    // * Handling the error if run returns an error
+
     let threads_amount: u64 = 17;
     let search_range: (u64, u64) = (1_000_000_100_000_u64, 1_000_000_100_200_u64);
     // let search_range: (u64, u64) = (1_u64, 16_u64);
