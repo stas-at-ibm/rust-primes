@@ -33,21 +33,26 @@ pub fn find_primes_parallel(
         ));
     }
 
-    let search_ranges_by_thread: Vec<(u64, u64)> = (1..=threads_amount)
-        .map(|thread_nr| range_boundaries(thread_nr, threads_amount, search_range).unwrap())
+    let result: Result<Vec<(u64, u64)>, ValidationError> = (1..=threads_amount)
+        .map(|thread_nr| range_boundaries(thread_nr, threads_amount, search_range))
         .collect();
 
-    let (rx, handles) = start_threads(search_ranges_by_thread);
+    match result {
+        Ok(search_ranges_by_thread) => {
+            let (rx, handles) = start_threads(search_ranges_by_thread);
 
-    for handle in handles {
-        if let Err(_) = handle.join() {
-            return Err(ValidationError::new(ValidationErrorKind::ThreadPanicError));
+            for handle in handles {
+                if let Err(_) = handle.join() {
+                    return Err(ValidationError::new(ValidationErrorKind::ThreadPanicError));
+                }
+            }
+
+            match rx {
+                Ok(rx) => Ok(rx.iter().collect()),
+                Err(err) => Err(err),
+            }
         }
-    }
-
-    match rx {
-        Ok(rx) => Ok(rx.iter().collect()),
-        Err(e) => Err(e),
+        Err(err) => Err(err),
     }
 }
 
