@@ -26,7 +26,40 @@ pub fn find_primes_parallel(
         ));
     }
 
-    let (rx, handles) = start_threads(threads_amount, search_range);
+    let (rx, handles) = start_threads_no_unwrap(threads_amount, search_range);
+
+    for handle in handles {
+        if let Err(_) = handle.join() {
+            return Err(ParallelismError::new(
+                ParallelismErrorKind::ThreadPanicError,
+            ));
+        }
+    }
+
+    match rx {
+        Ok(rx) => Ok(rx.iter().collect()),
+        Err(e) => Err(e),
+    }
+}
+
+pub fn XXX_find_primes_parallel(
+    threads_amount: u64,
+    search_range: (u64, u64),
+) -> Result<Vec<(u64, bool)>, ParallelismError> {
+    // validation
+    if threads_amount == 0 {
+        return Err(ParallelismError::new(
+            ParallelismErrorKind::ZeroThreadsError,
+        ));
+    }
+
+    if search_range.0 > search_range.1 {
+        return Err(ParallelismError::new(
+            ParallelismErrorKind::SearchRangeStartErrror,
+        ));
+    }
+
+    let (rx, handles) = start_threads_no_unwrap(threads_amount, search_range);
 
     for handle in handles {
         if let Err(_) = handle.join() {
@@ -73,6 +106,70 @@ fn start_threads(
 
     (rx, handles)
 }
+
+fn start_threads_no_unwrap(
+    threads_amount: u64,
+    search_range: (u64, u64),
+) -> (
+    Result<Receiver<(u64, bool)>, ParallelismError>,
+    Vec<JoinHandle<()>>,
+) {
+    let (tx, rx): (Sender<(u64, bool)>, Receiver<(u64, bool)>) = mpsc::channel();
+
+    let handles: Vec<JoinHandle<()>> = (1..=threads_amount)
+        .map(|_| tx.clone())
+        .enumerate()
+        .map(|(thread_number, tx)| {
+            (
+                // move this out to client
+                range_boundaries(thread_number as u64 + 1, threads_amount, search_range).unwrap(),
+                tx,
+            )
+        })
+        .map(|range_and_tx| worker(range_and_tx.0 .0, range_and_tx.0 .1, range_and_tx.1))
+        .collect();
+
+    // let mut txs: Vec<Sender<(u64, bool)>> = (1..=threads_amount).map(|_| tx.clone()).collect();
+    // let mut boundaries: Vec<Result<(u64, u64), ParallelismError>> = (1..=threads_amount)
+    //     .map(|thread_number| range_boundaries(thread_number, threads_amount, search_range))
+    //     .collect();
+
+    // let boundaries_error;
+    // for (i, boundary) in boundaries.iter().enumerate() {
+    //     match boundary {
+    //         Ok(value) => {
+    //             let handle = worker(value.0, value.1, txs.remove(i));
+    //             handles.push(handle);
+    //         }
+    //         Err(e) => {
+    //             boundaries_error = e;
+    //             break;
+    //         }
+    //     };
+    // }
+
+    (Ok(rx), handles)
+}
+
+// let mut txs: Vec<Sender<(u64, bool)>> = (1..=threads_amount).map(|_| tx.clone()).collect();
+
+// let mut boundaries: Vec<Result<(u64, u64), ParallelismError>> = (1..=threads_amount)
+//     .map(|thread_number| range_boundaries(thread_number, threads_amount, search_range))
+//     .collect();
+
+// let boundaries_error;
+// for (i, boundary) in boundaries.iter().enumerate() {
+//     match boundary {
+//         Ok(value) => {
+//             let handle = worker(value.0, value.1, txs.remove(i));
+//             handles.push(handle);
+//         }
+//         Err(e) => {
+//             boundaries_error = e;
+//             break;
+//         }
+//     };
+// }
 
 fn range_boundaries(
     thread_number: u64,
