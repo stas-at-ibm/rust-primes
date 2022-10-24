@@ -17,6 +17,7 @@ impl ValidationError {
 
 #[derive(Debug)]
 pub enum ValidationErrorKind {
+    SearchRangeStartAndEndEqualErrror,
     SearchRangeStartErrror,
     ThreadPanicError,
     ZeroThreadsError,
@@ -27,6 +28,9 @@ pub enum ValidationErrorKind {
 impl fmt::Display for ValidationError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.kind {
+            ValidationErrorKind::SearchRangeStartAndEndEqualErrror => {
+                write!(f, "search range start and end can not be equal")
+            }
             ValidationErrorKind::SearchRangeStartErrror => {
                 write!(
                     f,
