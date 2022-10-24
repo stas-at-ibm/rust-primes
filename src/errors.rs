@@ -1,22 +1,22 @@
 use std::fmt;
 
 #[derive(Debug)]
-pub struct ParallelismError {
-    kind: ParallelismErrorKind,
+pub struct ValidationError {
+    kind: ValidationErrorKind,
 }
 
-impl ParallelismError {
-    pub fn new(kind: ParallelismErrorKind) -> ParallelismError {
-        ParallelismError { kind }
+impl ValidationError {
+    pub fn new(kind: ValidationErrorKind) -> ValidationError {
+        ValidationError { kind }
     }
 
-    pub fn kind(&self) -> &ParallelismErrorKind {
+    pub fn kind(&self) -> &ValidationErrorKind {
         &self.kind
     }
 }
 
 #[derive(Debug)]
-pub enum ParallelismErrorKind {
+pub enum ValidationErrorKind {
     SearchRangeStartErrror,
     ThreadPanicError,
     ZeroThreadsError,
@@ -24,27 +24,27 @@ pub enum ParallelismErrorKind {
     ThreadAmountError,
 }
 
-impl fmt::Display for ParallelismError {
+impl fmt::Display for ValidationError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.kind {
-            ParallelismErrorKind::SearchRangeStartErrror => {
+            ValidationErrorKind::SearchRangeStartErrror => {
                 write!(
                     f,
                     "search range start must be smaller than search range end"
                 )
             }
-            ParallelismErrorKind::ThreadPanicError => {
+            ValidationErrorKind::ThreadPanicError => {
                 write!(f, "thread paniced")
             }
-            ParallelismErrorKind::ZeroThreadsError => {
+            ValidationErrorKind::ZeroThreadsError => {
                 write!(f, "there must be at least one thread")
             }
             // "Thread number must be smaller than thread amount.\nThread number: {}\nThread amount: {}",
-            ParallelismErrorKind::ThreadNumberError => {
+            ValidationErrorKind::ThreadNumberError => {
                 write!(f, "thread number must be smaller than thread amount")
             }
             // "Total number of threads must be smaller than highest number.\nThreads amount: {}\nHighest number: {}.",
-            ParallelismErrorKind::ThreadAmountError => write!(
+            ValidationErrorKind::ThreadAmountError => write!(
                 f,
                 "total number of threads must be smaller than highest number"
             ),

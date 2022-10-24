@@ -1,6 +1,6 @@
 mod errors;
 use colored::Colorize;
-use errors::{ParallelismError, ParallelismErrorKind};
+use errors::{ValidationError, ValidationErrorKind};
 use std::{
     sync::mpsc::{self, Receiver, Sender},
     thread::{self, JoinHandle},
@@ -19,20 +19,16 @@ pub fn print_prime_in_color(list_with_primes: Vec<(u64, bool)>) {
 pub fn find_primes_parallel(
     threads_amount: u64,
     search_range: (u64, u64),
-) -> Result<Vec<(u64, bool)>, ParallelismError> {
+) -> Result<Vec<(u64, bool)>, ValidationError> {
     if threads_amount == 0 {
-        return Err(ParallelismError::new(
-            ParallelismErrorKind::ZeroThreadsError,
-        ));
+        return Err(ValidationError::new(ValidationErrorKind::ZeroThreadsError));
     }
 
     let (rx, handles) = start_threads_no_unwrap(threads_amount, search_range);
 
     for handle in handles {
         if let Err(_) = handle.join() {
-            return Err(ParallelismError::new(
-                ParallelismErrorKind::ThreadPanicError,
-            ));
+            return Err(ValidationError::new(ValidationErrorKind::ThreadPanicError));
         }
     }
 
@@ -45,17 +41,15 @@ pub fn find_primes_parallel(
 pub fn XXX_find_primes_parallel(
     threads_amount: u64,
     search_range: (u64, u64),
-) -> Result<Vec<(u64, bool)>, ParallelismError> {
+) -> Result<Vec<(u64, bool)>, ValidationError> {
     // validation
     if threads_amount == 0 {
-        return Err(ParallelismError::new(
-            ParallelismErrorKind::ZeroThreadsError,
-        ));
+        return Err(ValidationError::new(ValidationErrorKind::ZeroThreadsError));
     }
 
     if search_range.0 > search_range.1 {
-        return Err(ParallelismError::new(
-            ParallelismErrorKind::SearchRangeStartErrror,
+        return Err(ValidationError::new(
+            ValidationErrorKind::SearchRangeStartErrror,
         ));
     }
 
@@ -63,9 +57,7 @@ pub fn XXX_find_primes_parallel(
 
     for handle in handles {
         if let Err(_) = handle.join() {
-            return Err(ParallelismError::new(
-                ParallelismErrorKind::ThreadPanicError,
-            ));
+            return Err(ValidationError::new(ValidationErrorKind::ThreadPanicError));
         }
     }
 
@@ -79,13 +71,13 @@ fn start_threads(
     threads_amount: u64,
     search_range: (u64, u64),
 ) -> (
-    Result<Receiver<(u64, bool)>, ParallelismError>,
+    Result<Receiver<(u64, bool)>, ValidationError>,
     Vec<JoinHandle<()>>,
 ) {
     let handles: Vec<JoinHandle<()>>;
 
     // hack: encapsulated into "{}" so that the receiver closes when the threads finish
-    let rx: Result<Receiver<(u64, bool)>, ParallelismError> = {
+    let rx: Result<Receiver<(u64, bool)>, ValidationError> = {
         let (tx, rx): (Sender<(u64, bool)>, Receiver<(u64, bool)>) = mpsc::channel();
 
         handles = (1..=threads_amount)
@@ -111,7 +103,7 @@ fn start_threads_no_unwrap(
     threads_amount: u64,
     search_range: (u64, u64),
 ) -> (
-    Result<Receiver<(u64, bool)>, ParallelismError>,
+    Result<Receiver<(u64, bool)>, ValidationError>,
     Vec<JoinHandle<()>>,
 ) {
     let (tx, rx): (Sender<(u64, bool)>, Receiver<(u64, bool)>) = mpsc::channel();
@@ -175,21 +167,17 @@ fn range_boundaries(
     thread_number: u64,
     threads_amount: u64,
     search_range: (u64, u64),
-) -> Result<(u64, u64), ParallelismError> {
+) -> Result<(u64, u64), ValidationError> {
     let start = search_range.0;
     let end = search_range.1;
     let highest_number = end - start;
 
     if thread_number > threads_amount {
-        return Err(ParallelismError::new(
-            ParallelismErrorKind::ThreadNumberError,
-        ));
+        return Err(ValidationError::new(ValidationErrorKind::ThreadNumberError));
     }
 
     if threads_amount > highest_number {
-        return Err(ParallelismError::new(
-            ParallelismErrorKind::ThreadAmountError,
-        ));
+        return Err(ValidationError::new(ValidationErrorKind::ThreadAmountError));
     }
 
     let step: u64 = (highest_number / threads_amount) as u64;
