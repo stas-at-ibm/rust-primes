@@ -45,11 +45,13 @@ pub fn XXX_find_primes_parallel(
     // validation
     if threads_amount == 0 {
         return Err(ValidationError::new(ValidationErrorKind::ZeroThreadsError));
-    }
-
-    if search_range.0 > search_range.1 {
+    } else if search_range.0 > search_range.1 {
         return Err(ValidationError::new(
             ValidationErrorKind::SearchRangeStartErrror,
+        ));
+    } else if search_range.0 == search_range.1 {
+        return Err(ValidationError::new(
+            ValidationErrorKind::SearchRangeStartAndEndEqualErrror,
         ));
     }
 
