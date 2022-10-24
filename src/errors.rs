@@ -17,6 +17,7 @@ impl ParallelismError {
 
 #[derive(Debug)]
 pub enum ParallelismErrorKind {
+    SearchRangeStartErrror,
     ThreadPanicError,
     ZeroThreadsError,
     ThreadNumberError,
@@ -26,6 +27,12 @@ pub enum ParallelismErrorKind {
 impl fmt::Display for ParallelismError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.kind {
+            ParallelismErrorKind::SearchRangeStartErrror => {
+                write!(
+                    f,
+                    "search range start must be smaller than search range end"
+                )
+            }
             ParallelismErrorKind::ThreadPanicError => {
                 write!(f, "thread paniced")
             }
