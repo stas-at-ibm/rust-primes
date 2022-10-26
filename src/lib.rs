@@ -118,6 +118,22 @@ fn worker(lower: u64, upper: u64, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
     })
 }
 
+fn XXX_worker(
+    nr: u64,
+    lower: u64,
+    upper: u64,
+    tx: Sender<(u64, bool)>,
+) -> Result<JoinHandle<Result<(), SendError<(u64, bool)>>>, std::io::Error> {
+    thread::Builder::new()
+        .name(format!("Thread Nr. {nr}"))
+        .spawn(move || -> Result<(), SendError<(u64, bool)>> {
+            for num in lower..upper {
+                tx.send((num, is_prime(num)))?;
+            }
+            Ok(())
+        })
+}
+
 pub fn is_prime(n: u64) -> bool {
     if n == 1 {
         return false;
