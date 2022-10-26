@@ -1,5 +1,10 @@
+use api::finder::find_primes_parallel;
+use api::printer::print_prime_in_color;
 use colored::Colorize;
-use rust_primes::{find_primes_parallel, print_prime_in_color};
+
+mod api;
+mod model;
+
 // highest_number: 100
 // threads_amount: 2
 // thread_num: 1

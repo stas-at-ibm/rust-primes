@@ -1,26 +1,15 @@
-mod errors;
-use colored::Colorize;
-use errors::{ValidationError, ValidationErrorKind};
+use crate::model::validation_error::{ValidationError, ValidationErrorKind};
+
 use std::{
-    sync::mpsc::{self, Receiver, Sender},
+    sync::mpsc::{self, Receiver, SendError, Sender},
     thread::{self, JoinHandle},
 };
-
-pub fn print_prime_in_color(list_with_primes: Vec<(u64, bool)>) {
-    for num in list_with_primes {
-        if num.1 {
-            println!("{} is prime.", num.0.to_string().green());
-        } else {
-            println!("{} is {} prime.", num.0, "not".red());
-        }
-    }
-}
 
 pub fn find_primes_parallel(
     threads_amount: u64,
     search_range: (u64, u64),
 ) -> Result<Vec<(u64, bool)>, ValidationError> {
-    // todo extract validation
+    // todo extract into validation function
     if threads_amount == 0 {
         return Err(ValidationError::new(ValidationErrorKind::ZeroThreadsError));
     } else if search_range.0 > search_range.1 {
@@ -33,6 +22,7 @@ pub fn find_primes_parallel(
         ));
     }
 
+    // todo extract into function
     let result: Result<Vec<(u64, u64)>, ValidationError> = (1..=threads_amount)
         .map(|thread_nr| range_boundaries(thread_nr, threads_amount, search_range))
         .collect();

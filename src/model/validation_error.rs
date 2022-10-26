@@ -1,6 +1,17 @@
 use std::fmt;
 
 #[derive(Debug)]
+pub enum ValidationErrorKind {
+    SearchRangeStartAndEndEqualErrror,
+    SearchRangeStartErrror,
+    SendDataError,
+    ThreadPanicError,
+    ZeroThreadsError,
+    ThreadNumberError,
+    ThreadAmountError,
+}
+
+#[derive(Debug)]
 pub struct ValidationError {
     kind: ValidationErrorKind,
 }
@@ -13,17 +24,6 @@ impl ValidationError {
     pub fn kind(&self) -> &ValidationErrorKind {
         &self.kind
     }
-}
-
-#[derive(Debug)]
-pub enum ValidationErrorKind {
-    SearchRangeStartAndEndEqualErrror,
-    SearchRangeStartErrror,
-    SendDataError,
-    ThreadPanicError,
-    ZeroThreadsError,
-    ThreadNumberError,
-    ThreadAmountError,
 }
 
 impl fmt::Display for ValidationError {
