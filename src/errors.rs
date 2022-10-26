@@ -19,6 +19,7 @@ impl ValidationError {
 pub enum ValidationErrorKind {
     SearchRangeStartAndEndEqualErrror,
     SearchRangeStartErrror,
+    SendDataError,
     ThreadPanicError,
     ZeroThreadsError,
     ThreadNumberError,
@@ -28,6 +29,12 @@ pub enum ValidationErrorKind {
 impl fmt::Display for ValidationError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.kind {
+            ValidationErrorKind::SendDataError => {
+                write!(
+                    f,
+                    "could not send data from thread, receiver is disconnected "
+                )
+            }
             ValidationErrorKind::SearchRangeStartAndEndEqualErrror => {
                 write!(f, "search range start and end can not be equal")
             }
