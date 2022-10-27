@@ -11,25 +11,25 @@ pub fn find_primes_parallel(
     lower: u64,
     upper: u64,
 ) -> Result<Vec<(u64, bool)>, ValidationError> {
-    let search_range: (u64, u64) = (lower, upper);
+    let mut search_range = lower..upper;
     // todo extract into validation function
     if threads_amount == 0 {
         return Err(ValidationError::new(ValidationErrorKind::ZeroThreadsError));
-    } else if search_range.0 > search_range.1 {
+    } else if search_range.start > search_range.end {
         return Err(ValidationError::new(
             ValidationErrorKind::SearchRangeStartErrror,
         ));
-    } else if search_range.0 == search_range.1 {
+    } else if search_range.start == search_range.end {
         return Err(ValidationError::new(
             ValidationErrorKind::SearchRangeStartAndEndEqualErrror,
         ));
     }
 
-    let boundaries = get_all_boundaries(threads_amount, search_range);
+    let boundaries = RANGE_get_all_boundaries(threads_amount, &mut search_range);
 
     match boundaries {
         Ok(search_ranges_by_thread) => {
-            let (rx, handles) = execute_threads(search_ranges_by_thread);
+            let (rx, handles) = RANGE_execute_threads(search_ranges_by_thread);
 
             for handle in handles {
                 if let Err(_) = handle.join() {
