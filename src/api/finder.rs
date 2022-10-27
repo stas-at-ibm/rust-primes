@@ -25,11 +25,9 @@ pub fn find_primes_parallel(
         ));
     }
 
-    let boundaries = get_all_boundaries(threads_amount, &mut search_range);
-
-    match boundaries {
-        Ok(search_ranges_by_thread) => {
-            let (rx, handles) = execute_threads(search_ranges_by_thread);
+    match get_all_boundaries(threads_amount, &mut search_range) {
+        Ok(boundaries) => {
+            let (rx, handles) = execute_threads(boundaries);
 
             for handle in handles {
                 if let Err(_) = handle.join() {
