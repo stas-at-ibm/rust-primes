@@ -25,11 +25,11 @@ pub fn find_primes_parallel(
         ));
     }
 
-    let boundaries = RANGE_get_all_boundaries(threads_amount, &mut search_range);
+    let boundaries = get_all_boundaries(threads_amount, &mut search_range);
 
     match boundaries {
         Ok(search_ranges_by_thread) => {
-            let (rx, handles) = RANGE_execute_threads(search_ranges_by_thread);
+            let (rx, handles) = execute_threads(search_ranges_by_thread);
 
             for handle in handles {
                 if let Err(_) = handle.join() {
@@ -48,85 +48,14 @@ pub fn find_primes_parallel(
 
 fn get_all_boundaries(
     threads_amount: u64,
-    search_range: (u64, u64),
-) -> Result<Vec<(u64, u64)>, ValidationError> {
-    (1..=threads_amount)
-        .map(|thread_nr| calculate_one_boundary(thread_nr, threads_amount, search_range))
-        .collect()
-}
-
-fn calculate_one_boundary(
-    thread_number: u64,
-    threads_amount: u64,
-    search_range: (u64, u64),
-) -> Result<(u64, u64), ValidationError> {
-    let start = search_range.0;
-    let end = search_range.1;
-    let highest_number = end - start;
-
-    if thread_number > threads_amount {
-        return Err(ValidationError::new(ValidationErrorKind::ThreadNumberError));
-    }
-
-    if threads_amount > highest_number {
-        return Err(ValidationError::new(ValidationErrorKind::ThreadAmountError));
-    }
-
-    let step: u64 = (highest_number / threads_amount) as u64;
-    let lower_bound: u64 = step * (thread_number - 1) + 1;
-
-    if threads_amount == thread_number {
-        Ok((start + lower_bound, start + highest_number))
-    } else {
-        Ok((start + lower_bound, start + (step * thread_number)))
-    }
-}
-
-fn execute_threads(
-    search_ranges_by_thread: Vec<(u64, u64)>,
-) -> (
-    Result<Receiver<(u64, bool)>, ValidationError>,
-    Vec<JoinHandle<()>>,
-) {
-    let (tx, rx): (Sender<(u64, bool)>, Receiver<(u64, bool)>) = mpsc::channel();
-
-    let handles: Vec<JoinHandle<()>> = search_ranges_by_thread
-        .iter()
-        .map(|search_range| (search_range, tx.clone()))
-        .map(|search_range_and_tx| {
-            worker(
-                search_range_and_tx.0 .0,
-                search_range_and_tx.0 .1,
-                search_range_and_tx.1,
-            )
-        })
-        .collect();
-
-    (Ok(rx), handles)
-}
-
-fn worker(lower: u64, upper: u64, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
-    thread::spawn(move || {
-        for num in lower..upper {
-            if is_prime(num) {
-                tx.send((num, true)).unwrap();
-            } else {
-                tx.send((num, false)).unwrap();
-            }
-        }
-    })
-}
-
-fn RANGE_get_all_boundaries(
-    threads_amount: u64,
     search_range: &mut Range<u64>,
 ) -> Result<Vec<Range<u64>>, ValidationError> {
     (1..=threads_amount)
-        .map(|thread_nr| RANGE_calculate_one_boundary(thread_nr, threads_amount, search_range))
+        .map(|thread_nr| calculate_boundary(thread_nr, threads_amount, search_range))
         .collect()
 }
 
-fn RANGE_calculate_one_boundary(
+fn calculate_boundary(
     thread_number: u64,
     threads_amount: u64,
     search_range: &mut Range<u64>,
@@ -151,7 +80,7 @@ fn RANGE_calculate_one_boundary(
     }
 }
 
-fn RANGE_execute_threads(
+fn execute_threads(
     search_ranges_by_thread: Vec<Range<u64>>,
 ) -> (
     Result<Receiver<(u64, bool)>, ValidationError>,
@@ -164,14 +93,14 @@ fn RANGE_execute_threads(
         .map(|search_range| (search_range, tx.clone()))
         .map(|search_range_and_tx| {
             let copy = search_range_and_tx.0.start..search_range_and_tx.0.end;
-            RANGE_worker(copy, search_range_and_tx.1)
+            worker(copy, search_range_and_tx.1)
         })
         .collect();
 
     (Ok(rx), handles)
 }
 
-fn RANGE_worker(search_range: Range<u64>, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
+fn worker(search_range: Range<u64>, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
     thread::spawn(move || {
         for num in search_range {
             tx.send((num, is_prime(num))).unwrap();
