@@ -29,7 +29,7 @@ pub fn find_primes_parallel(
 
     match boundaries {
         Ok(search_ranges_by_thread) => {
-            let (rx, handles) = start_threads(search_ranges_by_thread);
+            let (rx, handles) = execute_threads(search_ranges_by_thread);
 
             for handle in handles {
                 if let Err(_) = handle.join() {
@@ -82,7 +82,7 @@ fn calculate_one_boundary(
     }
 }
 
-fn start_threads(
+fn execute_threads(
     search_ranges_by_thread: Vec<(u64, u64)>,
 ) -> (
     Result<Receiver<(u64, bool)>, ValidationError>,
