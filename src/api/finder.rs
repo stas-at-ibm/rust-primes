@@ -90,6 +90,7 @@ fn execute_threads(
         .iter()
         .map(|search_range| (search_range, tx.clone()))
         .map(|search_range_and_tx| {
+            // hack: https://stackoverflow.com/a/62480671/5903780
             let copy = search_range_and_tx.0.start..search_range_and_tx.0.end;
             worker(copy, search_range_and_tx.1)
         })
