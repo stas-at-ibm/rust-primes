@@ -24,7 +24,7 @@ pub fn find_primes_parallel(
         ));
     }
 
-    let boundaries = get_boundaries_for_threads(threads_amount, search_range);
+    let boundaries = get_all_boundaries(threads_amount, search_range);
 
     match boundaries {
         Ok(search_ranges_by_thread) => {
@@ -45,12 +45,12 @@ pub fn find_primes_parallel(
     }
 }
 
-fn get_boundaries_for_threads(
+fn get_all_boundaries(
     threads_amount: u64,
     search_range: (u64, u64),
 ) -> Result<Vec<(u64, u64)>, ValidationError> {
     (1..=threads_amount)
-        .map(|thread_nr| range_boundaries(thread_nr, threads_amount, search_range))
+        .map(|thread_nr| calculate_one_boundary(thread_nr, threads_amount, search_range))
         .collect()
 }
 
@@ -77,7 +77,7 @@ fn start_threads(
     (Ok(rx), handles)
 }
 
-fn range_boundaries(
+fn calculate_one_boundary(
     thread_number: u64,
     threads_amount: u64,
     search_range: (u64, u64),
