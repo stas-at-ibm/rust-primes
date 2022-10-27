@@ -7,8 +7,10 @@ use std::{
 
 pub fn find_primes_parallel(
     threads_amount: u64,
-    search_range: (u64, u64),
+    lower: u64,
+    upper: u64,
 ) -> Result<Vec<(u64, bool)>, ValidationError> {
+    let search_range: (u64, u64) = (lower, upper);
     // todo extract into validation function
     if threads_amount == 0 {
         return Err(ValidationError::new(ValidationErrorKind::ZeroThreadsError));
