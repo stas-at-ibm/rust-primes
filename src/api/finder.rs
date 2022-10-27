@@ -119,7 +119,7 @@ fn worker(lower: u64, upper: u64, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
 
 fn RANGE_get_all_boundaries(
     threads_amount: u64,
-    search_range: &Range<u64>,
+    search_range: &mut Range<u64>,
 ) -> Result<Vec<Range<u64>>, ValidationError> {
     (1..=threads_amount)
         .map(|thread_nr| RANGE_calculate_one_boundary(thread_nr, threads_amount, search_range))
@@ -129,7 +129,7 @@ fn RANGE_get_all_boundaries(
 fn RANGE_calculate_one_boundary(
     thread_number: u64,
     threads_amount: u64,
-    search_range: &Range<u64>,
+    search_range: &mut Range<u64>,
 ) -> Result<Range<u64>, ValidationError> {
     let highest_number = search_range.end - search_range.start;
 
@@ -151,14 +151,30 @@ fn RANGE_calculate_one_boundary(
     }
 }
 
+fn RANGE_execute_threads(
+    search_ranges_by_thread: Vec<Range<u64>>,
+) -> (
+    Result<Receiver<(u64, bool)>, ValidationError>,
+    Vec<JoinHandle<()>>,
+) {
+    let (tx, rx): (Sender<(u64, bool)>, Receiver<(u64, bool)>) = mpsc::channel();
+
+    let handles: Vec<JoinHandle<()>> = search_ranges_by_thread
+        .iter()
+        .map(|search_range| (search_range, tx.clone()))
+        .map(|search_range_and_tx| {
+            let copy = search_range_and_tx.0.start..search_range_and_tx.0.end;
+            RANGE_worker(copy, search_range_and_tx.1)
+        })
+        .collect();
+
+    (Ok(rx), handles)
+}
+
 fn RANGE_worker(search_range: Range<u64>, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
     thread::spawn(move || {
         for num in search_range {
-            if is_prime(num) {
-                tx.send((num, true)).unwrap();
-            } else {
-                tx.send((num, false)).unwrap();
-            }
+            tx.send((num, is_prime(num))).unwrap();
         }
     })
 }
