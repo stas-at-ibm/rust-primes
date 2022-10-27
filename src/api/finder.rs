@@ -12,17 +12,8 @@ pub fn find_primes_parallel(
     upper: u64,
 ) -> Result<Vec<(u64, bool)>, ValidationError> {
     let mut search_range = lower..upper;
-    // todo extract into validation function
-    if threads_amount == 0 {
-        return Err(ValidationError::new(ValidationErrorKind::ZeroThreadsError));
-    } else if search_range.start > search_range.end {
-        return Err(ValidationError::new(
-            ValidationErrorKind::SearchRangeStartErrror,
-        ));
-    } else if search_range.start == search_range.end {
-        return Err(ValidationError::new(
-            ValidationErrorKind::SearchRangeStartAndEndEqualErrror,
-        ));
+    if let Some(err) = validate(threads_amount, &search_range) {
+        return Err(err);
     }
 
     match get_all_boundaries(threads_amount, &mut search_range) {
@@ -42,6 +33,22 @@ pub fn find_primes_parallel(
         }
         Err(err) => Err(err),
     }
+}
+
+fn validate(threads_amount: u64, search_range: &Range<u64>) -> Option<ValidationError> {
+    if threads_amount == 0 {
+        return Some(ValidationError::new(ValidationErrorKind::ZeroThreadsError));
+    } else if search_range.start > search_range.end {
+        return Some(ValidationError::new(
+            ValidationErrorKind::SearchRangeStartErrror,
+        ));
+    } else if search_range.start == search_range.end {
+        return Some(ValidationError::new(
+            ValidationErrorKind::SearchRangeStartAndEndEqualErrror,
+        ));
+    }
+
+    None
 }
 
 fn get_all_boundaries(
