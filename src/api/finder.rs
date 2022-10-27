@@ -1,6 +1,7 @@
 use crate::model::validation_error::{ValidationError, ValidationErrorKind};
 
 use std::{
+    ops::Range,
     sync::mpsc::{self, Receiver, SendError, Sender},
     thread::{self, JoinHandle},
 };
@@ -54,29 +55,6 @@ fn get_all_boundaries(
         .collect()
 }
 
-fn start_threads(
-    search_ranges_by_thread: Vec<(u64, u64)>,
-) -> (
-    Result<Receiver<(u64, bool)>, ValidationError>,
-    Vec<JoinHandle<()>>,
-) {
-    let (tx, rx): (Sender<(u64, bool)>, Receiver<(u64, bool)>) = mpsc::channel();
-
-    let handles: Vec<JoinHandle<()>> = search_ranges_by_thread
-        .iter()
-        .map(|search_range| (search_range, tx.clone()))
-        .map(|search_range_and_tx| {
-            worker(
-                search_range_and_tx.0 .0,
-                search_range_and_tx.0 .1,
-                search_range_and_tx.1,
-            )
-        })
-        .collect();
-
-    (Ok(rx), handles)
-}
-
 fn calculate_one_boundary(
     thread_number: u64,
     threads_amount: u64,
@@ -104,9 +82,78 @@ fn calculate_one_boundary(
     }
 }
 
+fn start_threads(
+    search_ranges_by_thread: Vec<(u64, u64)>,
+) -> (
+    Result<Receiver<(u64, bool)>, ValidationError>,
+    Vec<JoinHandle<()>>,
+) {
+    let (tx, rx): (Sender<(u64, bool)>, Receiver<(u64, bool)>) = mpsc::channel();
+
+    let handles: Vec<JoinHandle<()>> = search_ranges_by_thread
+        .iter()
+        .map(|search_range| (search_range, tx.clone()))
+        .map(|search_range_and_tx| {
+            worker(
+                search_range_and_tx.0 .0,
+                search_range_and_tx.0 .1,
+                search_range_and_tx.1,
+            )
+        })
+        .collect();
+
+    (Ok(rx), handles)
+}
+
 fn worker(lower: u64, upper: u64, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
     thread::spawn(move || {
         for num in lower..upper {
+            if is_prime(num) {
+                tx.send((num, true)).unwrap();
+            } else {
+                tx.send((num, false)).unwrap();
+            }
+        }
+    })
+}
+
+fn RANGE_get_all_boundaries(
+    threads_amount: u64,
+    search_range: &Range<u64>,
+) -> Result<Vec<Range<u64>>, ValidationError> {
+    (1..=threads_amount)
+        .map(|thread_nr| RANGE_calculate_one_boundary(thread_nr, threads_amount, search_range))
+        .collect()
+}
+
+fn RANGE_calculate_one_boundary(
+    thread_number: u64,
+    threads_amount: u64,
+    search_range: &Range<u64>,
+) -> Result<Range<u64>, ValidationError> {
+    let highest_number = search_range.end - search_range.start;
+
+    if thread_number > threads_amount {
+        return Err(ValidationError::new(ValidationErrorKind::ThreadNumberError));
+    }
+
+    if threads_amount > highest_number {
+        return Err(ValidationError::new(ValidationErrorKind::ThreadAmountError));
+    }
+
+    let step: u64 = (highest_number / threads_amount) as u64;
+    let lower_bound: u64 = step * (thread_number - 1) + 1;
+
+    if threads_amount == thread_number {
+        Ok((search_range.start + lower_bound)..(search_range.start + highest_number))
+    } else {
+        Ok((search_range.start + lower_bound)..(search_range.start + (step * thread_number)))
+    }
+}
+
+fn RANGE_worker(search_range: Range<u64>, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
+    thread::spawn(move || {
+        for num in search_range {
             if is_prime(num) {
                 tx.send((num, true)).unwrap();
             } else {
