@@ -24,12 +24,9 @@ pub fn find_primes_parallel(
         ));
     }
 
-    // todo extract into function
-    let result: Result<Vec<(u64, u64)>, ValidationError> = (1..=threads_amount)
-        .map(|thread_nr| range_boundaries(thread_nr, threads_amount, search_range))
-        .collect();
+    let boundaries = get_boundaries_for_threads(threads_amount, search_range);
 
-    match result {
+    match boundaries {
         Ok(search_ranges_by_thread) => {
             let (rx, handles) = start_threads(search_ranges_by_thread);
 
@@ -46,6 +43,15 @@ pub fn find_primes_parallel(
         }
         Err(err) => Err(err),
     }
+}
+
+fn get_boundaries_for_threads(
+    threads_amount: u64,
+    search_range: (u64, u64),
+) -> Result<Vec<(u64, u64)>, ValidationError> {
+    (1..=threads_amount)
+        .map(|thread_nr| range_boundaries(thread_nr, threads_amount, search_range))
+        .collect()
 }
 
 fn start_threads(
