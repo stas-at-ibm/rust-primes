@@ -26,10 +26,12 @@ pub fn find_primes_parallel(
                 }
             }
 
-            match rx {
-                Ok(rx) => Ok(rx.iter().collect()),
-                Err(err) => Err(err),
-            }
+            // short form code below
+            return Ok(rx?.iter().collect());
+            // match rx {
+            //     Ok(rx) => Ok(rx.iter().collect()),
+            //     Err(err) => Err(err),
+            // }
         }
         Err(err) => Err(err),
     }
