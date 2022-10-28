@@ -6,7 +6,7 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-pub fn find_primes_parallel(
+pub fn find_primes_parallel_tx_rx(
     threads_amount: u64,
     lower: u64,
     upper: u64,
@@ -18,7 +18,7 @@ pub fn find_primes_parallel(
 
     match get_all_boundaries(threads_amount, &mut search_range) {
         Ok(boundaries) => {
-            let (rx, handles) = execute_threads(boundaries);
+            let (rx, handles) = execute_threads_tx_rx(boundaries);
 
             for handle in handles {
                 if let Err(_) = handle.join() {
@@ -26,7 +26,7 @@ pub fn find_primes_parallel(
                 }
             }
 
-            // short form code below
+            // short form for code below
             return Ok(rx?.iter().collect());
             // match rx {
             //     Ok(rx) => Ok(rx.iter().collect()),
@@ -73,6 +73,7 @@ fn calculate_boundary(
         return Err(ValidationError::new(ValidationErrorKind::ThreadNumberError));
     }
 
+    // todo move to validation function
     if threads_amount > highest_number {
         return Err(ValidationError::new(ValidationErrorKind::ThreadAmountError));
     }
@@ -87,7 +88,7 @@ fn calculate_boundary(
     }
 }
 
-fn execute_threads(
+fn execute_threads_tx_rx(
     search_ranges_by_thread: Vec<Range<u64>>,
 ) -> (
     Result<Receiver<(u64, bool)>, ValidationError>,
@@ -101,14 +102,14 @@ fn execute_threads(
         .map(|search_range_and_tx| {
             // hack: https://stackoverflow.com/a/62480671/5903780
             let copy = search_range_and_tx.0.start..search_range_and_tx.0.end;
-            worker(copy, search_range_and_tx.1)
+            worker_tx_rx(copy, search_range_and_tx.1)
         })
         .collect();
 
     (Ok(rx), handles)
 }
 
-fn worker(search_range: Range<u64>, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
+fn worker_tx_rx(search_range: Range<u64>, tx: Sender<(u64, bool)>) -> JoinHandle<()> {
     thread::spawn(move || {
         for num in search_range {
             tx.send((num, is_prime(num))).unwrap();

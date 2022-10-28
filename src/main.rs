@@ -70,7 +70,8 @@ fn main() {
     let upper: u64 = 1_000_000_100_010_u64;
     // let search_range: (u64, u64) = (1_u64, 16_u64);
 
-    match find_primes_parallel(threads_amount, lower, upper) {
+    println!("================ V1 ===================");
+    match find_primes_parallel_tx_rx(threads_amount, lower, upper) {
         Ok(primes) => print_prime_in_color(primes),
         Err(e) => eprintln!("{}: {} ", "error".red(), e),
     };
