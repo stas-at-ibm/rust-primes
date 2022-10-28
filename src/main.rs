@@ -1,5 +1,5 @@
-use api::finder::find_primes_parallel;
-use api::printer::print_prime_in_color;
+use api::finder::{find_primes_parallel, find_primes_parallel_tx_rx};
+use api::printer::{print_positive_number_prime_in_color, print_prime_in_color};
 use colored::Colorize;
 
 mod api;
@@ -65,7 +65,7 @@ fn main() {
     // * Calling a run function in lib.rs
     // * Handling the error if run returns an error
 
-    let threads_amount: u64 = 1;
+    let threads_amount: u64 = 2;
     let lower: u64 = 1_000_000_100_000_u64;
     let upper: u64 = 1_000_000_100_010_u64;
     // let search_range: (u64, u64) = (1_u64, 16_u64);
@@ -73,6 +73,12 @@ fn main() {
     println!("================ V1 ===================");
     match find_primes_parallel_tx_rx(threads_amount, lower, upper) {
         Ok(primes) => print_prime_in_color(primes),
+        Err(e) => eprintln!("{}: {} ", "error".red(), e),
+    };
+
+    println!("================ V2 ===================");
+    match find_primes_parallel(threads_amount, lower, upper) {
+        Ok(primes) => print_positive_number_prime_in_color(primes),
         Err(e) => eprintln!("{}: {} ", "error".red(), e),
     };
 }
