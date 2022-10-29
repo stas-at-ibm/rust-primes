@@ -7,7 +7,7 @@ use std::{
 };
 
 pub struct ThreadPool {
-    threads: Vec<Worker>,
+    workers: Vec<Worker>,
     sender: Sender<Job>,
 }
 
@@ -20,13 +20,13 @@ impl ThreadPool {
         let (sender, receiver) = mpsc::channel::<Job>();
         let receiver = Arc::new(Mutex::new(receiver));
 
-        let mut threads = Vec::with_capacity(size);
+        let mut workers = Vec::with_capacity(size);
 
         for id in 0..size {
-            threads.push(Worker::new(id, Arc::clone(&receiver)));
+            workers.push(Worker::new(id, Arc::clone(&receiver)));
         }
 
-        ThreadPool { threads, sender }
+        ThreadPool { workers, sender }
     }
 
     pub fn execute<F>(&self, f: F)
@@ -45,7 +45,7 @@ struct Worker {
 
 impl Worker {
     pub fn new(id: usize, receiver: Arc<Mutex<Receiver<Job>>>) -> Worker {
-        let thread = thread::spawn(move || {
+        let thread = thread::spawn(move || loop {
             let job = receiver.lock().unwrap().recv().unwrap();
 
             println!("Worker {id} got a job; executing.");
