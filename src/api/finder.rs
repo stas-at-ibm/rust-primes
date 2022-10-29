@@ -95,7 +95,7 @@ fn calculate_boundary(
     threads_amount: u64,
     search_range: &mut Range<u64>,
 ) -> Result<Range<u64>, ValidationError> {
-    let highest_number = search_range.end - search_range.start;
+    let highest_number = search_range.end - search_range.start + 1;
 
     if thread_number > threads_amount {
         return Err(ValidationError::new(ValidationErrorKind::ThreadNumberError));
