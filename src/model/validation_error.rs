@@ -4,7 +4,7 @@ use std::fmt;
 pub enum ValidationErrorKind {
     SearchRangeStartAndEndEqualErrror,
     SearchRangeStartErrror,
-    SendDataError,
+    // SendDataError,
     ThreadPanicError,
     ZeroThreadsError,
     ThreadNumberError,
@@ -20,21 +20,17 @@ impl ValidationError {
     pub fn new(kind: ValidationErrorKind) -> ValidationError {
         ValidationError { kind }
     }
-
-    pub fn kind(&self) -> &ValidationErrorKind {
-        &self.kind
-    }
 }
 
 impl fmt::Display for ValidationError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.kind {
-            ValidationErrorKind::SendDataError => {
-                write!(
-                    f,
-                    "could not send data from thread, receiver is disconnected "
-                )
-            }
+            // ValidationErrorKind::SendDataError => {
+            //     write!(
+            //         f,
+            //         "could not send data from thread, receiver is disconnected "
+            //     )
+            // }
             ValidationErrorKind::SearchRangeStartAndEndEqualErrror => {
                 write!(f, "search range start and end can not be equal")
             }
