@@ -1,11 +1,14 @@
-use crate::model::{
-    positive_number::PositiveNumber,
-    validation_error::{ValidationError, ValidationErrorKind},
+use crate::{
+    common::thread_pool::ThreadPool,
+    model::{
+        positive_number::PositiveNumber,
+        validation_error::{ValidationError, ValidationErrorKind},
+    },
 };
 
 use std::{
     ops::Range,
-    sync::mpsc::{self, Receiver, SendError, Sender},
+    sync::mpsc::{self, Receiver, Sender},
     thread::{self, JoinHandle},
 };
 
@@ -63,6 +66,43 @@ pub fn find_primes_parallel(
         }
         Err(err) => Err(err),
     }
+}
+
+pub fn find_primes_parallel_thread_pool(
+    threads_amount: u64,
+    lower: u64,
+    upper: u64,
+) -> Result<Vec<PositiveNumber>, ValidationError> {
+    let mut search_range = lower..upper;
+    if let Some(err) = validate(threads_amount, &search_range) {
+        return Err(err);
+    }
+
+    match get_all_boundaries(threads_amount, &mut search_range) {
+        Ok(boundaries) => {
+            let pool = ThreadPool::new(threads_amount as usize);
+
+            for boundary in boundaries {
+                pool.execute(|| {
+                    check_for_primes(boundary);
+                });
+            }
+
+            Ok(vec![])
+        }
+        Err(err) => Err(err),
+    }
+}
+
+fn check_for_primes(search_range: Range<u64>) {
+    let range_size = search_range.end - search_range.start + 1;
+    let mut checked_numbers: Vec<PositiveNumber> = Vec::with_capacity(range_size as usize);
+
+    for num in search_range {
+        checked_numbers.push(PositiveNumber::new(num, is_prime(num)));
+    }
+
+    println!("{:?}", checked_numbers);
 }
 
 fn validate(threads_amount: u64, search_range: &Range<u64>) -> Option<ValidationError> {
@@ -171,6 +211,7 @@ fn worker(search_range: Range<u64>) -> JoinHandle<Vec<PositiveNumber>> {
     })
 }
 
+/*
 fn XXX_worker(
     nr: u64,
     lower: u64,
@@ -186,6 +227,7 @@ fn XXX_worker(
             Ok(())
         })
 }
+*/
 
 pub fn is_prime(n: u64) -> bool {
     if n == 1 {
