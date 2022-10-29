@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct PositiveNumber {
     value: u64,
     is_prime: bool,
