@@ -65,7 +65,17 @@ struct Worker {
 impl Worker {
     pub fn new(id: usize, receiver: Arc<Mutex<Receiver<Job>>>) -> Worker {
         let thread = thread::spawn(move || loop {
-            match receiver.lock().unwrap().recv() {
+            // The code let job = receiver.lock().unwrap().recv(); works because with let,
+            // any temporary values used in the expression on the right hand side of the
+            // equals sign are immediately dropped when the let statement ends.
+            // However, while let (and if let and !match!) does not drop temporary values
+            // until the end of the associated block.
+            // With code match receiver.lock().unwrap().recv() {, the lock remains held
+            // for the duration of the call to job(), meaning other workers cannot receive
+            // jobs. => https://doc.rust-lang.org/stable/book/ch20-02-multithreaded.html
+            let message = receiver.lock().unwrap().recv();
+
+            match message {
                 Ok(job) => {
                     println!("Worker {id} got a job; executing.");
 
