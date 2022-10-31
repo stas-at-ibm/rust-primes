@@ -1,4 +1,4 @@
-use super::common::{get_all_boundaries, is_prime, validate};
+use super::common::{break_down_search_range_into_partitions, is_prime, validate};
 use crate::model::validation_error::{ValidationError, ValidationErrorKind};
 
 use std::{
@@ -26,7 +26,7 @@ pub fn find_primes_parallel(
         return Err(err);
     }
 
-    match get_all_boundaries(threads_amount, &mut search_range) {
+    match break_down_search_range_into_partitions(threads_amount, &mut search_range) {
         Ok(boundaries) => {
             let (rx, handles) = execute_threads_tx_rx(boundaries);
 

@@ -8,7 +8,7 @@ use std::{
     sync::mpsc::{self, Receiver},
 };
 
-use super::common::{get_all_boundaries, is_prime, validate};
+use super::common::{break_down_search_range_into_partitions, is_prime, validate};
 
 /// Finds prime numbers using a thread pool and channels.
 ///
@@ -29,7 +29,7 @@ pub fn find_primes_parallel(
         return Err(err);
     }
 
-    match get_all_boundaries(threads_amount, &mut search_range) {
+    match break_down_search_range_into_partitions(threads_amount, &mut search_range) {
         Ok(boundaries) => {
             let pool = ThreadPool::new(threads_amount as usize);
             let rx: Result<Receiver<Vec<PositiveNumber>>, ValidationError> = {

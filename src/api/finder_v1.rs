@@ -5,7 +5,7 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-use super::common::{get_all_boundaries, is_prime, validate};
+use super::common::{break_down_search_range_into_partitions, is_prime, validate};
 
 /// Finds prime numbers using a parallelism.
 ///
@@ -26,7 +26,7 @@ pub fn find_primes_parallel(
         return Err(err);
     }
 
-    match get_all_boundaries(threads_amount, &mut search_range) {
+    match break_down_search_range_into_partitions(threads_amount, &mut search_range) {
         Ok(boundaries) => {
             let handles = execute_threads(boundaries);
 

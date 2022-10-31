@@ -17,7 +17,7 @@ pub fn validate(amount_of_partitions: u64, search_range: &Range<u64>) -> Option<
     None
 }
 
-pub fn get_all_boundaries(
+pub fn break_down_search_range_into_partitions(
     amount_of_partitions: u64,
     search_range: &mut Range<u64>,
 ) -> Result<Vec<Range<u64>>, ValidationError> {
