@@ -4,7 +4,7 @@ use colored::Colorize;
 use crate::api::finder_v3::find_primes_parallel;
 
 mod api;
-mod common;
+mod infrastructure;
 mod model;
 
 fn main() {
@@ -14,7 +14,7 @@ fn main() {
     // let search_range: (u64, u64) = (1_u64, 16_u64);
 
     // println!("================ V1 ===================");
-    // match find_primes_parallel_tx_rx(threads_amount, lower, upper) {
+    // match find_primes_parallel(threads_amount, lower, upper) {
     //     Ok(primes) => print_prime_in_color(primes),
     //     Err(e) => eprintln!("{}: {} ", "error".red(), e),
     // };

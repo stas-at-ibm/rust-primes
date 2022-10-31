@@ -1,5 +1,5 @@
 use crate::{
-    common::thread_pool::ThreadPool,
+    infrastructure::thread_pool::ThreadPool,
     model::{positive_number::PositiveNumber, validation_error::ValidationError},
 };
 
