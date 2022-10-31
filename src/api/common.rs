@@ -1,8 +1,8 @@
 use crate::model::validation_error::{ValidationError, ValidationErrorKind};
 use std::ops::Range;
 
-pub fn validate(threads_amount: u64, search_range: &Range<u64>) -> Option<ValidationError> {
-    if threads_amount == 0 {
+pub fn validate(amount_of_partitions: u64, search_range: &Range<u64>) -> Option<ValidationError> {
+    if amount_of_partitions == 0 {
         return Some(ValidationError::new(ValidationErrorKind::ZeroThreadsError));
     } else if search_range.start > search_range.end {
         return Some(ValidationError::new(
@@ -18,37 +18,37 @@ pub fn validate(threads_amount: u64, search_range: &Range<u64>) -> Option<Valida
 }
 
 pub fn get_all_boundaries(
-    threads_amount: u64,
+    amount_of_partitions: u64,
     search_range: &mut Range<u64>,
 ) -> Result<Vec<Range<u64>>, ValidationError> {
-    (1..=threads_amount)
-        .map(|thread_nr| calculate_boundary(thread_nr, threads_amount, search_range))
+    (1..=amount_of_partitions)
+        .map(|partition_nr| calculate_partition(partition_nr, amount_of_partitions, search_range))
         .collect()
 }
 
-fn calculate_boundary(
-    thread_number: u64,
-    threads_amount: u64,
+fn calculate_partition(
+    partition_nr: u64,
+    amount_of_partitions: u64,
     search_range: &mut Range<u64>,
 ) -> Result<Range<u64>, ValidationError> {
-    let highest_number = search_range.end - search_range.start + 1;
+    let range_size = search_range.end - search_range.start + 1;
 
-    if thread_number > threads_amount {
+    if partition_nr > amount_of_partitions {
         return Err(ValidationError::new(ValidationErrorKind::ThreadNumberError));
     }
 
     // todo move to validation function
-    if threads_amount > highest_number {
+    if amount_of_partitions > range_size {
         return Err(ValidationError::new(ValidationErrorKind::ThreadAmountError));
     }
 
-    let step: u64 = (highest_number / threads_amount) as u64;
-    let lower_bound: u64 = step * (thread_number - 1) + 1;
+    let step: u64 = (range_size / amount_of_partitions) as u64;
+    let lower_bound: u64 = step * (partition_nr - 1) + 1;
 
-    if threads_amount == thread_number {
-        Ok((search_range.start + lower_bound)..(search_range.start + highest_number))
+    if amount_of_partitions == partition_nr {
+        Ok((search_range.start + lower_bound)..(search_range.start + range_size))
     } else {
-        Ok((search_range.start + lower_bound)..(search_range.start + (step * thread_number)))
+        Ok((search_range.start + lower_bound)..(search_range.start + (step * partition_nr)))
     }
 }
 
