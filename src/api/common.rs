@@ -2,8 +2,12 @@ use crate::model::validation_error::{ValidationError, ValidationErrorKind};
 use std::ops::Range;
 
 pub fn validate(amount_of_partitions: u64, search_range: &Range<u64>) -> Option<ValidationError> {
+    let range_size = search_range.end - search_range.start + 1;
+
     if amount_of_partitions == 0 {
         return Some(ValidationError::new(ValidationErrorKind::ZeroThreadsError));
+    } else if amount_of_partitions > range_size {
+        return Some(ValidationError::new(ValidationErrorKind::ThreadAmountError));
     } else if search_range.start > search_range.end {
         return Some(ValidationError::new(
             ValidationErrorKind::SearchRangeStartErrror,
@@ -35,11 +39,6 @@ fn calculate_partition(
 
     if partition_nr > amount_of_partitions {
         return Err(ValidationError::new(ValidationErrorKind::ThreadNumberError));
-    }
-
-    // todo move to validation function
-    if amount_of_partitions > range_size {
-        return Err(ValidationError::new(ValidationErrorKind::ThreadAmountError));
     }
 
     let step: u64 = (range_size / amount_of_partitions) as u64;
