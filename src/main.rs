@@ -1,7 +1,7 @@
 use api::printer::{print_positive_number_prime_in_color, print_prime_in_color};
 use colored::Colorize;
 
-use crate::api::finder_v1::find_primes_parallel_thread_pool;
+use crate::api::finder_v3::find_primes_parallel;
 
 mod api;
 mod common;
@@ -26,7 +26,7 @@ fn main() {
     // };
 
     println!("================ V3 ===================");
-    match find_primes_parallel_thread_pool(threads_amount, lower, upper) {
+    match find_primes_parallel(threads_amount, lower, upper) {
         Ok(primes) => print_positive_number_prime_in_color(primes),
         Err(e) => eprintln!("{}: {} ", "error".red(), e),
     };
