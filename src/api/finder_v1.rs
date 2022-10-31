@@ -7,6 +7,15 @@ use std::{
 
 use super::common::{get_all_boundaries, is_prime, validate};
 
+/// Finds prime numbers using a parallelism.
+///
+/// The threads_amount is the number of threads which will be used.
+///
+/// lower and upper define the range in which to search for primes.
+///
+/// # Panics
+///
+/// The `handle.join` fails.
 pub fn find_primes_parallel(
     threads_amount: u64,
     lower: u64,
