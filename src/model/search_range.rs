@@ -15,12 +15,12 @@ impl SearchRange {
 
         Ok(SearchRange {
             numbers: start..end,
-            partitions: SearchRange::get_all_partitions(start, end, partitions).unwrap(),
+            partitions: SearchRange::get_all_partitions(start, end, partitions)?,
         })
     }
 
     fn validate(start: u64, end: u64, partitions: u64) -> Option<ValidationError> {
-        let size = end - start + 1;
+        let size = SearchRange::size(start, end);
 
         if partitions == 0 {
             return Some(ValidationError::new(ValidationErrorKind::ZeroThreadsError));
@@ -37,6 +37,10 @@ impl SearchRange {
         }
 
         None
+    }
+
+    fn size(start: u64, end: u64) -> u64 {
+        end - start + 1
     }
 
     fn get_all_partitions(
@@ -59,7 +63,7 @@ impl SearchRange {
             return Err(ValidationError::new(ValidationErrorKind::ThreadNumberError));
         }
 
-        let size = end - start + 1;
+        let size = SearchRange::size(start, end);
         let step: u64 = (size / partitions) as u64;
         let lower_bound: u64 = step * (partition_nr - 1) + 1;
 
