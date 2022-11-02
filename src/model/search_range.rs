@@ -18,12 +18,10 @@ impl SearchRange {
     fn get_all_partitions(
         start: u64,
         end: u64,
-        amount_of_partitions: u64,
+        partitions: u64,
     ) -> Result<Vec<Range<u64>>, ValidationError> {
-        (1..=amount_of_partitions)
-            .map(|partition_nr| {
-                SearchRange::get_partition(start, end, partition_nr, amount_of_partitions)
-            })
+        (1..=partitions)
+            .map(|partition_nr| SearchRange::get_partition(start, end, partition_nr, partitions))
             .collect()
     }
 
@@ -31,17 +29,17 @@ impl SearchRange {
         start: u64,
         end: u64,
         partition_nr: u64,
-        amount_of_partitions: u64,
+        partitions: u64,
     ) -> Result<Range<u64>, ValidationError> {
-        if partition_nr > amount_of_partitions {
+        if partition_nr > partitions {
             return Err(ValidationError::new(ValidationErrorKind::ThreadNumberError));
         }
 
         let size = end - start + 1;
-        let step: u64 = (size / amount_of_partitions) as u64;
+        let step: u64 = (size / partitions) as u64;
         let lower_bound: u64 = step * (partition_nr - 1) + 1;
 
-        if amount_of_partitions == partition_nr {
+        if partitions == partition_nr {
             Ok((start + lower_bound)..(start + size))
         } else {
             Ok((start + lower_bound)..(start + (step * partition_nr)))
