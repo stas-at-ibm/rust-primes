@@ -32,7 +32,7 @@ pub fn find_primes_parallel(
         return Err(err);
     }
 
-    let pool = ThreadPool::new(search_range_v2.partitions().len());
+    let pool = ThreadPool::new(threads as usize);
     let rx: Result<Receiver<Vec<PositiveNumber>>, ValidationError> = {
         let (tx, rx) = mpsc::channel();
 
