@@ -1,6 +1,9 @@
 use crate::{
     infrastructure::thread_pool::ThreadPool,
-    model::{positive_number::PositiveNumber, validation_error::ValidationError},
+    model::{
+        positive_number::PositiveNumber, search_range::SearchRange,
+        validation_error::ValidationError,
+    },
 };
 
 use std::{
@@ -8,7 +11,7 @@ use std::{
     sync::mpsc::{self, Receiver},
 };
 
-use super::common::{break_down_search_range_into_partitions, is_prime, validate};
+use super::common::{is_prime, validate};
 
 /// Finds prime numbers using a thread pool and channels.
 ///
@@ -20,41 +23,36 @@ use super::common::{break_down_search_range_into_partitions, is_prime, validate}
 ///
 /// The `tx.send` function will panic if the receiver is closed beforehand.
 pub fn find_primes_parallel(
-    threads_amount: u64,
+    threads: u64,
     lower: u64,
     upper: u64,
 ) -> Result<Vec<PositiveNumber>, ValidationError> {
-    let mut search_range = lower..upper;
-    if let Some(err) = validate(threads_amount, &search_range) {
+    let search_range_v2 = SearchRange::new(lower, upper, threads);
+    if let Some(err) = validate(threads, &search_range_v2.numbers()) {
         return Err(err);
     }
 
-    match break_down_search_range_into_partitions(threads_amount, &mut search_range) {
-        Ok(boundaries) => {
-            let pool = ThreadPool::new(threads_amount as usize);
-            let rx: Result<Receiver<Vec<PositiveNumber>>, ValidationError> = {
-                let (tx, rx) = mpsc::channel();
+    let pool = ThreadPool::new(search_range_v2.partitions().len());
+    let rx: Result<Receiver<Vec<PositiveNumber>>, ValidationError> = {
+        let (tx, rx) = mpsc::channel();
 
-                for boundary in boundaries {
-                    let tx_copy = tx.clone();
-                    pool.execute(move || {
-                        let checked_nums = check_for_primes(boundary);
-                        tx_copy.send(checked_nums).unwrap();
-                    });
-                }
-
-                Ok(rx)
-            };
-
-            let mut all_checked_nums: Vec<PositiveNumber> = vec![];
-            for mut checked_section in rx?.iter() {
-                all_checked_nums.append(&mut checked_section);
-            }
-
-            Ok(all_checked_nums)
+        for partition in search_range_v2.partitions() {
+            let tx_copy = tx.clone();
+            pool.execute(move || {
+                let checked_nums = check_for_primes(partition);
+                tx_copy.send(checked_nums).unwrap();
+            });
         }
-        Err(err) => Err(err),
+
+        Ok(rx)
+    };
+
+    let mut all_checked_nums: Vec<PositiveNumber> = vec![];
+    for mut checked_section in rx?.iter() {
+        all_checked_nums.append(&mut checked_section);
     }
+
+    Ok(all_checked_nums)
 }
 
 fn check_for_primes(search_range: Range<u64>) -> Vec<PositiveNumber> {
