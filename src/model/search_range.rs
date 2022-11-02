@@ -8,11 +8,35 @@ pub struct SearchRange {
 }
 
 impl SearchRange {
-    pub fn new(start: u64, end: u64, partitions: u64) -> SearchRange {
-        SearchRange {
+    pub fn new(start: u64, end: u64, partitions: u64) -> Result<SearchRange, ValidationError> {
+        if let Some(err) = SearchRange::validate(start, end, partitions) {
+            return Err(err);
+        }
+
+        Ok(SearchRange {
             numbers: start..end,
             partitions: SearchRange::get_all_partitions(start, end, partitions).unwrap(),
+        })
+    }
+
+    fn validate(start: u64, end: u64, partitions: u64) -> Option<ValidationError> {
+        let size = end - start + 1;
+
+        if partitions == 0 {
+            return Some(ValidationError::new(ValidationErrorKind::ZeroThreadsError));
+        } else if partitions > size {
+            return Some(ValidationError::new(ValidationErrorKind::ThreadAmountError));
+        } else if start > end {
+            return Some(ValidationError::new(
+                ValidationErrorKind::SearchRangeStartErrror,
+            ));
+        } else if start == end {
+            return Some(ValidationError::new(
+                ValidationErrorKind::SearchRangeStartAndEndEqualErrror,
+            ));
         }
+
+        None
     }
 
     fn get_all_partitions(
@@ -44,10 +68,6 @@ impl SearchRange {
         } else {
             Ok((start + lower_bound)..(start + (step * partition_nr)))
         }
-    }
-
-    pub fn numbers(&self) -> &Range<u64> {
-        &self.numbers
     }
 
     pub fn partitions(&self) -> Vec<Range<u64>> {

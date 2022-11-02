@@ -11,7 +11,7 @@ use std::{
     sync::mpsc::{self, Receiver},
 };
 
-use super::common::{is_prime, validate};
+use super::common::is_prime;
 
 /// Finds prime numbers using a thread pool and channels.
 ///
@@ -27,16 +27,13 @@ pub fn find_primes_parallel(
     lower: u64,
     upper: u64,
 ) -> Result<Vec<PositiveNumber>, ValidationError> {
-    let search_range_v2 = SearchRange::new(lower, upper, threads);
-    if let Some(err) = validate(threads, &search_range_v2.numbers()) {
-        return Err(err);
-    }
+    let search_range = SearchRange::new(lower, upper, threads)?;
 
     let pool = ThreadPool::new(threads as usize);
     let rx: Result<Receiver<Vec<PositiveNumber>>, ValidationError> = {
         let (tx, rx) = mpsc::channel();
 
-        for partition in search_range_v2.partitions() {
+        for partition in search_range.partitions() {
             let tx_copy = tx.clone();
             pool.execute(move || {
                 let checked_nums = check_for_primes(partition);
