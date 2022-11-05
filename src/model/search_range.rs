@@ -74,7 +74,7 @@ impl SearchRange {
         }
     }
 
-    pub fn partitions(&self) -> Vec<Range<u64>> {
-        self.partitions.clone()
+    pub fn partitions(&self) -> &Vec<Range<u64>> {
+        &self.partitions
     }
 }

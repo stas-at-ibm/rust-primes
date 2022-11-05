@@ -35,8 +35,11 @@ pub fn find_primes_parallel(
 
         for partition in search_range.partitions() {
             let tx_copy = tx.clone();
+            // needed to prevent dangling reference error because partition moves into an
+            // async function
+            let partition_copy = partition.clone();
             pool.execute(move || {
-                let checked_nums = check_for_primes(partition);
+                let checked_nums = check_for_primes(partition_copy);
                 tx_copy.send(checked_nums).unwrap();
             });
         }
@@ -45,8 +48,8 @@ pub fn find_primes_parallel(
     };
 
     let mut all_checked_nums: Vec<PositiveNumber> = vec![];
-    for mut checked_section in rx?.iter() {
-        all_checked_nums.append(&mut checked_section);
+    for mut checked_partition in rx?.iter() {
+        all_checked_nums.append(&mut checked_partition);
     }
 
     Ok(all_checked_nums)
